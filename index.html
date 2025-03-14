@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turmeric Lead Detector</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
     <h2>Upload an image of turmeric to check for lead adulteration</h2>
@@ -14,14 +13,11 @@
     <p id="result"></p>
 
     <script>
-        const URL = "my_model/";  // Ensure this matches your uploaded folder name
-
         let model, labelContainer, maxPredictions;
 
         async function loadModel() {
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
-            model = await tmImage.load(modelURL, metadataURL);
+            const URL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/";
+            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
             maxPredictions = model.getTotalClasses();
             console.log("✅ Model Loaded Successfully");
         }
@@ -45,7 +41,7 @@
             };
         }
 
-        loadModel();  // Load the model when the page loads
+        loadModel(); // Load model when the page loads
     </script>
 </body>
 </html>
