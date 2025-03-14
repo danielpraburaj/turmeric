@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turmeric Lead Detector</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
     <h2>Upload an image of turmeric to check for lead adulteration</h2>
@@ -13,31 +14,43 @@
     <p id="result"></p>
 
     <script>
-        let model, labelContainer, maxPredictions;
+        let model, maxPredictions;
+        const modelURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb//model.json";
+        const metadataURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/metadata.json";
 
         async function loadModel() {
-            const URL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/";
-            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
-            maxPredictions = model.getTotalClasses();
-            console.log("✅ Model Loaded Successfully");
+            try {
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+                console.log("✅ Model Loaded Successfully");
+            } catch (error) {
+                console.error("❌ Model Loading Failed:", error);
+                document.getElementById("result").innerText = "Error: Model not loading!";
+            }
         }
 
         async function predictImage() {
             let fileInput = document.getElementById("imageInput").files[0];
             if (!fileInput) {
-                alert("Please upload an image.");
+                alert("❌ Please upload an image.");
                 return;
             }
 
             let img = document.createElement("img");
             img.src = URL.createObjectURL(fileInput);
             img.onload = async function () {
-                let prediction = await model.predict(img);
-                
-                let result = prediction[0].probability > prediction[1].probability ? 
-                             "Leaded" : "Non-Leaded";
+                try {
+                    const prediction = await model.predict(img);
+                    console.log("Prediction:", prediction);
 
-                document.getElementById("result").innerText = "Prediction: " + result;
+                    let result = prediction[0].probability > prediction[1].probability ? 
+                                 "Leaded" : "Non-Leaded";
+
+                    document.getElementById("result").innerText = "Prediction: " + result;
+                } catch (error) {
+                    console.error("❌ Prediction Failed:", error);
+                    document.getElementById("result").innerText = "Error: Prediction failed!";
+                }
             };
         }
 
