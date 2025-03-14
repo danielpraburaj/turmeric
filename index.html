@@ -18,7 +18,7 @@
 
         async function loadModel() {
             try {
-                model = await tf.loadLayersModel('model.json');  
+                model = await tf.loadLayersModel('https://yourusername.github.io/turmeric-lead-detector/model.json');              
                 console.log("✅ Model Loaded Successfully");
             } catch (error) {
                 console.error("❌ Model Loading Failed: ", error);
