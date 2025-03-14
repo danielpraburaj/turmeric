@@ -5,59 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turmeric Lead Detector</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
     <h2>Upload an image of turmeric to check for lead adulteration</h2>
     <input type="file" id="imageInput" accept="image/*">
     <button onclick="predictImage()">Check</button>
     <p id="result"></p>
-    <canvas id="canvas" style="display: none;"></canvas>
 
     <script>
-        let model;
+        const URL = "my_model/";  // Ensure this matches your uploaded folder name
+
+        let model, labelContainer, maxPredictions;
 
         async function loadModel() {
-            try {
-                model = await tf.loadLayersModel('https://yourusername.github.io/turmeric-lead-detector/model.json');              
-                console.log("✅ Model Loaded Successfully");
-            } catch (error) {
-                console.error("❌ Model Loading Failed: ", error);
-                document.getElementById("result").innerText = "Error: Model not loading!";
-            }
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+            console.log("✅ Model Loaded Successfully");
         }
-
-        loadModel();  
 
         async function predictImage() {
             let fileInput = document.getElementById("imageInput").files[0];
             if (!fileInput) {
-                alert("❌ Please upload an image.");
+                alert("Please upload an image.");
                 return;
             }
 
             let img = document.createElement("img");
             img.src = URL.createObjectURL(fileInput);
             img.onload = async function () {
-                let canvas = document.getElementById("canvas");
-                let ctx = canvas.getContext("2d");
-                canvas.width = 224;
-                canvas.height = 224;
-                ctx.drawImage(img, 0, 0, 224, 224);
+                let prediction = await model.predict(img);
+                
+                let result = prediction[0].probability > prediction[1].probability ? 
+                             "Leaded" : "Non-Leaded";
 
-                try {
-                    let imageData = tf.browser.fromPixels(canvas).toFloat().div(255.0).expandDims();
-                    let prediction = await model.predict(imageData).data();
-                    
-                    console.log("Prediction Output:", prediction); 
-                    let result = prediction[0] > prediction[1] ? "Leaded" : "Non-Leaded";
-
-                    document.getElementById("result").innerText = "Prediction: " + result;
-                } catch (error) {
-                    console.error("❌ Prediction Failed: ", error);
-                    document.getElementById("result").innerText = "Error: Prediction failed!";
-                }
+                document.getElementById("result").innerText = "Prediction: " + result;
             };
         }
+
+        loadModel();  // Load the model when the page loads
     </script>
 </body>
 </html>
