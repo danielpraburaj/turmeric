@@ -15,11 +15,17 @@
 
     <script>
         let model;
+
         async function loadModel() {
-            model = await tf.loadLayersModel('model.json');  // Load the model from GitHub
-            console.log("Model Loaded");
+            try {
+                model = await tf.loadLayersModel('model.json');  // Ensure model.json is in the same folder
+                console.log("✅ Model Loaded Successfully");
+            } catch (error) {
+                console.error("❌ Model Loading Failed: ", error);
+            }
         }
-        loadModel();  // Load model on page load
+
+        loadModel();  // Load the model when the page loads
 
         async function predictImage() {
             let fileInput = document.getElementById("imageInput").files[0];
@@ -39,6 +45,7 @@
 
                 let imageData = tf.browser.fromPixels(canvas).toFloat().div(255.0).expandDims();
                 let prediction = await model.predict(imageData).data();
+                
                 let result = prediction[0] > prediction[1] ? "Leaded" : "Non-Leaded";
 
                 document.getElementById("result").innerText = "Prediction: " + result;
