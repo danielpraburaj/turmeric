@@ -14,14 +14,14 @@
     <p id="result"></p>
 
     <script>
-        let model, maxPredictions;
-        const modelURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb//model.json";
+        let model;
+        const modelURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/model.json";
         const metadataURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/metadata.json";
 
         async function loadModel() {
             try {
+                console.log("🔄 Loading Model...");
                 model = await tmImage.load(modelURL, metadataURL);
-                maxPredictions = model.getTotalClasses();
                 console.log("✅ Model Loaded Successfully");
             } catch (error) {
                 console.error("❌ Model Loading Failed:", error);
@@ -40,7 +40,10 @@
             img.src = URL.createObjectURL(fileInput);
             img.onload = async function () {
                 try {
-                    const prediction = await model.predict(img);
+                    let imageElement = document.createElement("img");
+                    imageElement.src = img.src;
+
+                    let prediction = await model.predict(imageElement);
                     console.log("Prediction:", prediction);
 
                     let result = prediction[0].probability > prediction[1].probability ? 
