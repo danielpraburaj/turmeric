@@ -4,60 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turmeric Lead Detector</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
     <h2>Upload an image of turmeric to check for lead adulteration</h2>
     <input type="file" id="imageInput" accept="image/*">
-    <button onclick="predictImage()">Check</button>
+    <button onclick="uploadImage()">Check</button>
     <p id="result"></p>
 
     <script>
-        let model;
-        const modelURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/model.json";
-        const metadataURL = "https://teachablemachine.withgoogle.com/models/ICKpFAvfb/metadata.json";
-
-        async function loadModel() {
-            try {
-                console.log("🔄 Loading Model...");
-                model = await tmImage.load(modelURL, metadataURL);
-                console.log("✅ Model Loaded Successfully");
-            } catch (error) {
-                console.error("❌ Model Loading Failed:", error);
-                document.getElementById("result").innerText = "Error: Model not loading!";
-            }
-        }
-
-        async function predictImage() {
+        async function uploadImage() {
             let fileInput = document.getElementById("imageInput").files[0];
             if (!fileInput) {
-                alert("❌ Please upload an image.");
+                alert("Please upload an image.");
                 return;
             }
 
-            let img = document.createElement("img");
-            img.src = URL.createObjectURL(fileInput);
-            img.onload = async function () {
-                try {
-                    let imageElement = document.createElement("img");
-                    imageElement.src = img.src;
+            let formData = new FormData();
+            formData.append("file", fileInput);
 
-                    let prediction = await model.predict(imageElement);
-                    console.log("Prediction:", prediction);
+            let response = await fetch("https://turmeric-6gsy.onrender.com", {
+                method: "POST",
+                body: formData
+            });
 
-                    let result = prediction[0].probability > prediction[1].probability ? 
-                                 "Leaded" : "Non-Leaded";
-
-                    document.getElementById("result").innerText = "Prediction: " + result;
-                } catch (error) {
-                    console.error("❌ Prediction Failed:", error);
-                    document.getElementById("result").innerText = "Error: Prediction failed!";
-                }
-            };
+            let data = await response.json();
+            document.getElementById("result").innerText = "Prediction: " + data.prediction;
         }
-
-        loadModel(); // Load model when the page loads
     </script>
 </body>
 </html>
