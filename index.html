@@ -18,19 +18,20 @@
 
         async function loadModel() {
             try {
-                model = await tf.loadLayersModel('model.json');  // Ensure model.json is in the same folder
+                model = await tf.loadLayersModel('model.json');  
                 console.log("✅ Model Loaded Successfully");
             } catch (error) {
                 console.error("❌ Model Loading Failed: ", error);
+                document.getElementById("result").innerText = "Error: Model not loading!";
             }
         }
 
-        loadModel();  // Load the model when the page loads
+        loadModel();  
 
         async function predictImage() {
             let fileInput = document.getElementById("imageInput").files[0];
             if (!fileInput) {
-                alert("Please upload an image.");
+                alert("❌ Please upload an image.");
                 return;
             }
 
@@ -43,12 +44,18 @@
                 canvas.height = 224;
                 ctx.drawImage(img, 0, 0, 224, 224);
 
-                let imageData = tf.browser.fromPixels(canvas).toFloat().div(255.0).expandDims();
-                let prediction = await model.predict(imageData).data();
-                
-                let result = prediction[0] > prediction[1] ? "Leaded" : "Non-Leaded";
+                try {
+                    let imageData = tf.browser.fromPixels(canvas).toFloat().div(255.0).expandDims();
+                    let prediction = await model.predict(imageData).data();
+                    
+                    console.log("Prediction Output:", prediction); 
+                    let result = prediction[0] > prediction[1] ? "Leaded" : "Non-Leaded";
 
-                document.getElementById("result").innerText = "Prediction: " + result;
+                    document.getElementById("result").innerText = "Prediction: " + result;
+                } catch (error) {
+                    console.error("❌ Prediction Failed: ", error);
+                    document.getElementById("result").innerText = "Error: Prediction failed!";
+                }
             };
         }
     </script>
