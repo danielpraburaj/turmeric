@@ -4,28 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turmeric Lead Detector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 </head>
 <body>
     <h2>Upload an image of turmeric to check for lead adulteration</h2>
-    <input type="file" id="imageInput">
-    <button onclick="uploadImage()">Check</button>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="predictImage()">Check</button>
     <p id="result"></p>
+    <canvas id="canvas" style="display: none;"></canvas>
 
     <script>
-        function uploadImage() {
-            let fileInput = document.getElementById("imageInput").files[0];
-            let formData = new FormData();
-            formData.append("file", fileInput);
+        let model;
+        async function loadModel() {
+            model = await tf.loadLayersModel('model.json');  // Load the model from GitHub
+            console.log("Model Loaded");
+        }
+        loadModel();  // Load model on page load
 
-            fetch("https://your-api-endpoint.com/predict", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("result").innerText = "Prediction: " + data.prediction;
-            })
-            .catch(error => console.error("Error:", error));
+        async function predictImage() {
+            let fileInput = document.getElementById("imageInput").files[0];
+            if (!fileInput) {
+                alert("Please upload an image.");
+                return;
+            }
+
+            let img = document.createElement("img");
+            img.src = URL.createObjectURL(fileInput);
+            img.onload = async function () {
+                let canvas = document.getElementById("canvas");
+                let ctx = canvas.getContext("2d");
+                canvas.width = 224;
+                canvas.height = 224;
+                ctx.drawImage(img, 0, 0, 224, 224);
+
+                let imageData = tf.browser.fromPixels(canvas).toFloat().div(255.0).expandDims();
+                let prediction = await model.predict(imageData).data();
+                let result = prediction[0] > prediction[1] ? "Leaded" : "Non-Leaded";
+
+                document.getElementById("result").innerText = "Prediction: " + result;
+            };
         }
     </script>
 </body>
