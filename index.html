@@ -6,49 +6,67 @@
     <title>Turmeric Adulteration Detector</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-        #preview { max-width: 100%; margin: 10px auto; display: block; }
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #image-preview { max-width: 100%; margin-top: 10px; }
+        #resultText { font-size: 20px; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
+
     <h1>Turmeric Adulteration Detector</h1>
-    <input type="file" id="upload" accept="image/*"><br><br>
-    <img id="preview" style="display:none;">
-    <h2 id="resultText"></h2>
+    
+    <input type="file" id="imageUpload" accept="image/*">
+    <button id="submitBtn">Submit</button>
+
+    <br>
+    <img id="image-preview" style="display:none;" />
+    <p id="resultText"></p>
 
     <script>
         let model;
         
         async function loadModel() {
             model = await tf.loadLayersModel('model/model.json');
-            console.log("Model Loaded");
+            console.log("Model loaded!");
         }
 
-        document.getElementById('upload').addEventListener('change', async function(event) {
-            let file = event.target.files[0];
-            if (!file) return;
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                let img = document.getElementById("image-preview");
+                img.src = URL.createObjectURL(file);
+                img.style.display = "block";
+            }
+        });
 
-            // Display Image Preview
-            let imgElement = document.getElementById('preview');
-            imgElement.src = URL.createObjectURL(file);
-            imgElement.style.display = "block";
+        document.getElementById('submitBtn').addEventListener('click', async function() {
+            if (!model) {
+                alert("Model is still loading. Please wait!");
+                return;
+            }
 
-            // Wait for image to load
-            await new Promise(resolve => imgElement.onload = resolve);
+            const fileInput = document.getElementById('imageUpload');
+            if (!fileInput.files[0]) {
+                alert("Please upload an image first!");
+                return;
+            }
 
-            // Preprocess Image
-            let tensor = tf.browser.fromPixels(imgElement)
+            let img = document.createElement("img");
+            img.src = URL.createObjectURL(fileInput.files[0]);
+            await new Promise(resolve => img.onload = resolve);
+            
+            let tensor = tf.browser.fromPixels(img)
                 .resizeNearestNeighbor([224, 224])
                 .toFloat()
                 .expandDims();
-
-            // Make Prediction
+            
             let prediction = await model.predict(tensor).data();
-            let resultText = document.getElementById('resultText');
-            resultText.innerText = prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
+            document.getElementById("resultText").innerText = 
+                prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
         });
 
         loadModel();
     </script>
+
 </body>
 </html>
