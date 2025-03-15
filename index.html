@@ -3,45 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turmeric Adulteration Detector</title>
+    <title>Turmeric Lead Detection</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        #image-preview { max-width: 100%; margin-top: 10px; }
-        #resultText { font-size: 20px; font-weight: bold; margin-top: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #imagePreview {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+        #resultText {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Turmeric Adulteration Detector</h1>
-    
+    <h2>Turmeric Lead Adulteration Detector</h2>
     <input type="file" id="imageUpload" accept="image/*">
-    <button id="submitBtn">Submit</button>
-
+    <br><br>
+    <img id="imagePreview" style="display: none;">
     <br>
-    <img id="image-preview" style="display:none;" />
+    <button id="submitBtn" disabled>🔄 Loading Model...</button>
     <p id="resultText"></p>
 
     <script>
         let model;
-        
+        let modelLoaded = false;
+
+        // Function to load the model
         async function loadModel() {
-            model = await tf.loadLayersModel('model/model.json');
-            console.log("Model loaded!");
+            try {
+                model = await tf.loadLayersModel('model/model.json');
+                modelLoaded = true;
+                document.getElementById("submitBtn").innerText = "🔍 Analyze Image";
+                document.getElementById("submitBtn").disabled = false;
+                console.log("Model loaded successfully!");
+            } catch (error) {
+                console.error("Error loading model:", error);
+                alert("Failed to load model. Check console for errors.");
+            }
         }
+
+        // Load the model when the page loads
+        loadModel();
 
         document.getElementById('imageUpload').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
-                let img = document.getElementById("image-preview");
-                img.src = URL.createObjectURL(file);
-                img.style.display = "block";
+                const imageElement = document.getElementById("imagePreview");
+                imageElement.src = URL.createObjectURL(file);
+                imageElement.style.display = "block";
             }
         });
 
         document.getElementById('submitBtn').addEventListener('click', async function() {
-            if (!model) {
-                alert("Model is still loading. Please wait!");
+            if (!modelLoaded) {
+                alert("Model is still loading. Please wait.");
                 return;
             }
 
@@ -64,8 +87,6 @@
             document.getElementById("resultText").innerText = 
                 prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
         });
-
-        loadModel();
     </script>
 
 </body>
