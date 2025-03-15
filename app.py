@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 import tensorflow as tf
 import numpy as np
@@ -29,8 +30,6 @@ def predict():
 
     return jsonify({"prediction": result})
 
-import os
-
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))  # Render provides PORT dynamically
+    port = int(os.environ.get("PORT", 8080))  # Render dynamically assigns PORT
     app.run(host="0.0.0.0", port=port)
