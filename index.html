@@ -1,29 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turmeric Adulteration Detector</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #result { font-size: 20px; margin-top: 10px; }
-    </style>
-</head>
-<body>
-
-    <h1>Turmeric Adulteration Detector</h1>
-    <input type="file" id="imageUpload">
-    <button id="submitBtn">Check</button>
-    <p id="result"></p>
-
     <script>
         let model;
+        const modelURL = "https://danielpraburaj.github.io/turmeric/model.json"; // ✅ Corrected model path
 
         const loadModel = async () => {
             try {
                 console.log("Loading model...");
-                model = await tf.loadLayersModel('model.json'); // ✅ Model is in the root folder
+                model = await tf.loadGraphModel(modelURL); // ✅ Correct function for Teachable Machine model
                 console.log("Model loaded successfully!");
             } catch (error) {
                 alert("Failed to load model. Check console for errors.");
@@ -49,12 +31,12 @@
                 .expandDims();
 
             let prediction = await model.predict(tensor).data();
+            console.log("Prediction:", prediction);
+
+            // Assuming two classes: 0 = Non-leaded, 1 = Leaded
             document.getElementById("result").innerText = 
                 prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
         });
 
         loadModel();
     </script>
-
-</body>
-</html>
