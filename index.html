@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fruit Adulteration Detector</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
     <h1>Fruit Adulteration Detector</h1>
@@ -21,18 +21,14 @@
 
     <script>
         let model;
-        const URL = ""; // Keep empty if model files are in root
+        const URL = ""; // If model files are in root folder
         let labelContainer, uploadedImage, imgElement;
 
         async function loadModel() {
-            try {
-                console.log("Loading model...");
-                model = await tmImage.load(URL + "model.json", URL + "metadata.json");
-                console.log("Model Loaded Successfully!");
-                labelContainer = document.getElementById("label-container");
-            } catch (error) {
-                console.error("Error loading model:", error);
-            }
+            console.log("Loading model...");
+            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+            console.log("Model Loaded Successfully!");
+            labelContainer = document.getElementById("label-container");
         }
 
         document.getElementById("imageUpload").addEventListener("change", function(event) {
@@ -56,12 +52,10 @@
 
         async function predictImage() {
             if (!model) {
-                console.error("Model not loaded!");
-                alert("Model not loaded! Please check your model files.");
+                alert("Model not loaded! Please check your files.");
                 return;
             }
             if (!imgElement) {
-                console.error("No image loaded!");
                 alert("No image uploaded! Please select an image first.");
                 return;
             }
