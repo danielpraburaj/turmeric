@@ -22,7 +22,8 @@
             let formData = new FormData();
             formData.append("file", fileInput);
 
-            let response = await fetch("https://turmeric-6gsy.onrender.com", {
+            // Notice the endpoint now includes /predict
+            let response = await fetch("https://turmeric-6gsy.onrender.com/predict", {
                 method: "POST",
                 body: formData
             });
