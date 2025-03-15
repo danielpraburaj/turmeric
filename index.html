@@ -3,91 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turmeric Lead Detection</title>
+    <title>Turmeric Adulteration Detector</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 20px;
+            margin: 50px;
         }
-        #imagePreview {
+        #image-preview {
             max-width: 300px;
-            margin-top: 10px;
+            margin-top: 20px;
         }
-        #resultText {
-            font-size: 20px;
+        #loading {
+            display: none;
+            font-size: 18px;
+            color: red;
+        }
+        #result {
+            font-size: 22px;
+            margin-top: 20px;
             font-weight: bold;
-            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-
-    <h2>Turmeric Lead Adulteration Detector</h2>
+    <h1>Turmeric Adulteration Detector</h1>
     <input type="file" id="imageUpload" accept="image/*">
     <br><br>
-    <img id="imagePreview" style="display: none;">
+    <img id="image-preview" style="display:none;">
     <br>
-    <button id="submitBtn" disabled>🔄 Loading Model...</button>
-    <p id="resultText"></p>
+    <button id="submitButton">Submit</button>
+    <p id="loading">Loading Model...</p>
+    <p id="result"></p>
 
     <script>
         let model;
-        let modelLoaded = false;
 
-        // Function to load the model
         async function loadModel() {
             try {
-                model = await tf.loadLayersModel('model/model.json');
-                modelLoaded = true;
-                document.getElementById("submitBtn").innerText = "🔍 Analyze Image";
-                document.getElementById("submitBtn").disabled = false;
-                console.log("Model loaded successfully!");
+                document.getElementById("loading").style.display = "block";
+                model = await tf.loadLayersModel("model/model.json");
+                document.getElementById("loading").style.display = "none";
             } catch (error) {
-                console.error("Error loading model:", error);
                 alert("Failed to load model. Check console for errors.");
+                console.error(error);
             }
         }
 
-        // Load the model when the page loads
-        loadModel();
-
-        document.getElementById('imageUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const imageElement = document.getElementById("imagePreview");
-                imageElement.src = URL.createObjectURL(file);
-                imageElement.style.display = "block";
-            }
-        });
-
-        document.getElementById('submitBtn').addEventListener('click', async function() {
-            if (!modelLoaded) {
+        document.getElementById("submitButton").addEventListener("click", async function() {
+            if (!model) {
                 alert("Model is still loading. Please wait.");
                 return;
             }
 
-            const fileInput = document.getElementById('imageUpload');
-            if (!fileInput.files[0]) {
-                alert("Please upload an image first!");
+            let fileInput = document.getElementById("imageUpload");
+            if (fileInput.files.length === 0) {
+                alert("Please upload an image first.");
                 return;
             }
 
-            let img = document.createElement("img");
-            img.src = URL.createObjectURL(fileInput.files[0]);
+            let file = fileInput.files[0];
+            let img = document.getElementById("image-preview");
+            img.src = URL.createObjectURL(file);
+            img.style.display = "block";
+
             await new Promise(resolve => img.onload = resolve);
-            
+
             let tensor = tf.browser.fromPixels(img)
                 .resizeNearestNeighbor([224, 224])
                 .toFloat()
                 .expandDims();
-            
-            let prediction = await model.predict(tensor).data();
-            document.getElementById("resultText").innerText = 
-                prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
-        });
-    </script>
 
+            let prediction = await model.predict(tensor).data();
+            document.getElementById("result").innerText = prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
+        });
+
+        loadModel();
+    </script>
 </body>
 </html>
