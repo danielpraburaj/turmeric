@@ -3,67 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turmeric Adulteration Detection</title>
+    <title>Turmeric Adulteration Detector</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #preview { display: none; max-width: 100%; margin-top: 20px; }
-        #resultText { font-size: 1.5em; margin-top: 20px; }
+        #result { font-size: 20px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <h1>Turmeric Adulteration Detector</h1>
-    
-    <input type="file" id="upload" accept="image/*">
-    <br>
-    <img id="preview">
-    <p id="resultText"></p>
+    <input type="file" id="imageUpload">
+    <button id="submitBtn">Check</button>
+    <p id="result"></p>
 
     <script>
         let model;
 
-        async function loadModel() {
+        const loadModel = async () => {
             try {
-                model = await tf.loadLayersModel('model.json');
-                console.log("✅ Model Loaded Successfully");
+                console.log("Loading model...");
+                model = await tf.loadLayersModel('model.json'); // ✅ Model is in the root folder
+                console.log("Model loaded successfully!");
             } catch (error) {
-                console.error("❌ Model Loading Error:", error);
+                alert("Failed to load model. Check console for errors.");
+                console.error(error);
             }
-        }
+        };
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            await loadModel();
+        document.getElementById("submitBtn").addEventListener("click", async () => {
+            const fileInput = document.getElementById("imageUpload");
+            if (!fileInput.files.length) {
+                alert("Please select an image.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            let img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            await new Promise(resolve => img.onload = resolve);
+
+            let tensor = tf.browser.fromPixels(img)
+                .resizeNearestNeighbor([224, 224])
+                .toFloat()
+                .expandDims();
+
+            let prediction = await model.predict(tensor).data();
+            document.getElementById("result").innerText = 
+                prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
         });
 
-        document.getElementById('upload').addEventListener('change', async function(event) {
-            let file = event.target.files[0];
-            if (!file) return;
-
-            let imgElement = document.getElementById('preview');
-            imgElement.src = URL.createObjectURL(file);
-            imgElement.style.display = "block";
-
-            await new Promise(resolve => imgElement.onload = resolve);
-            console.log("✅ Image Loaded Successfully");
-
-            try {
-                let tensor = tf.browser.fromPixels(imgElement)
-                    .resizeNearestNeighbor([224, 224])
-                    .toFloat()
-                    .expandDims();
-                
-                console.log("✅ Tensor Created:", tensor.shape);
-
-                let prediction = await model.predict(tensor).data();
-                console.log("✅ Prediction Output:", prediction);
-
-                let resultText = document.getElementById('resultText');
-                resultText.innerText = prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
-            } catch (error) {
-                console.error("❌ Prediction Error:", error);
-            }
-        });
+        loadModel();
     </script>
 
 </body>
