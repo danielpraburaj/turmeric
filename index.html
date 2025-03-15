@@ -1,11 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turmeric Adulteration Detector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #result { font-size: 20px; margin-top: 10px; }
+        img { max-width: 300px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Turmeric Adulteration Detector</h1>
+    <input type="file" id="imageUpload" accept="image/*">
+    <button id="submitBtn">Check</button>
+    <p id="result"></p>
+    <img id="preview" style="display:none;">
+
     <script>
         let model;
-        const modelURL = "https://danielpraburaj.github.io/turmeric/model.json"; // ✅ Corrected model path
+        const modelURL = "https://danielpraburaj.github.io/turmeric/";
 
+        // Load Model
         const loadModel = async () => {
             try {
                 console.log("Loading model...");
-                model = await tf.loadGraphModel(modelURL); // ✅ Correct function for Teachable Machine model
+                model = await tmImage.load(modelURL + "model.json", modelURL + "metadata.json");
                 console.log("Model loaded successfully!");
             } catch (error) {
                 alert("Failed to load model. Check console for errors.");
@@ -13,30 +36,41 @@
             }
         };
 
+        // Image Preview
+        document.getElementById("imageUpload").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                let img = document.getElementById("preview");
+                img.src = URL.createObjectURL(file);
+                img.style.display = "block";
+            }
+        });
+
+        // Predict Function
         document.getElementById("submitBtn").addEventListener("click", async () => {
-            const fileInput = document.getElementById("imageUpload");
-            if (!fileInput.files.length) {
+            if (!model) {
+                document.getElementById("result").innerText = "Model still loading, please wait...";
+                return;
+            }
+
+            const imgElement = document.getElementById("preview");
+            if (!imgElement.src) {
                 alert("Please select an image.");
                 return;
             }
 
-            const file = fileInput.files[0];
-            let img = document.createElement("img");
-            img.src = URL.createObjectURL(file);
-            await new Promise(resolve => img.onload = resolve);
-
-            let tensor = tf.browser.fromPixels(img)
-                .resizeNearestNeighbor([224, 224])
-                .toFloat()
-                .expandDims();
-
-            let prediction = await model.predict(tensor).data();
+            const prediction = await model.predict(imgElement);
             console.log("Prediction:", prediction);
 
-            // Assuming two classes: 0 = Non-leaded, 1 = Leaded
+            let highestScore = Math.max(...prediction.map(p => p.probability));
+            let detectedClass = prediction.find(p => p.probability === highestScore).className;
+
             document.getElementById("result").innerText = 
-                prediction[0] > 0.5 ? "🚨 Lead Adulterated" : "✅ Pure Turmeric";
+                `Prediction: ${detectedClass} (Confidence: ${(highestScore * 100).toFixed(2)}%)`;
         });
 
-        loadModel();
+        loadModel();  // Load the model when the page loads
     </script>
+
+</body>
+</html>
