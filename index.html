@@ -20,8 +20,8 @@
     <div id="label-container"></div>
 
     <script>
-        const URL = ""; // Since model files are in root
-        let model, labelContainer, maxPredictions, uploadedImage;
+        const URL = ""; // Keep empty if model files are in root
+        let model, labelContainer, maxPredictions, uploadedImage, imgElement;
 
         async function loadModel() {
             const modelURL = URL + "model.json";
@@ -29,6 +29,7 @@
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
             labelContainer = document.getElementById("label-container");
+            console.log("Model Loaded Successfully!");
         }
 
         document.getElementById("imageUpload").addEventListener("change", function(event) {
@@ -36,31 +37,43 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    uploadedImage = new Image();
-                    uploadedImage.src = e.target.result;
                     document.getElementById("uploadedImage").src = e.target.result;
                     document.getElementById("uploadedImage").style.display = "block";
                     document.getElementById("submitBtn").disabled = false; // Enable submit button
+
+                    // Create an image element for prediction
+                    imgElement = new Image();
+                    imgElement.src = e.target.result;
+                    imgElement.onload = function() {
+                        console.log("Image Loaded for Prediction");
+                    };
                 };
                 reader.readAsDataURL(file);
             }
         });
 
         async function predictImage() {
-            if (uploadedImage) {
-                const prediction = await model.predict(uploadedImage);
-                displayResults(prediction);
+            if (!model) {
+                console.error("Model not loaded!");
+                return;
             }
+            if (!imgElement) {
+                console.error("No image loaded!");
+                return;
+            }
+
+            console.log("Predicting...");
+            const prediction = await model.predict(imgElement);
+            displayResults(prediction);
         }
 
         function displayResults(prediction) {
-            labelContainer.innerHTML = "";
+            labelContainer.innerHTML = "<h3>Results:</h3>";
             for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
-                const resultElement = document.createElement("div");
-                resultElement.innerText = classPrediction;
-                labelContainer.appendChild(resultElement);
+                const classPrediction = `<p>${prediction[i].className}: ${Math.round(prediction[i].probability * 100)}%</p>`;
+                labelContainer.innerHTML += classPrediction;
             }
+            console.log("Prediction complete!");
         }
 
         loadModel();
