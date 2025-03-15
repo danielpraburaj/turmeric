@@ -10,21 +10,18 @@
 <body>
     <h1>Fruit Adulteration Detector</h1>
 
-    <!-- Webcam -->
-    <video id="webcam" autoplay style="display:none;"></video>
-    <button onclick="initWebcam()">Use Webcam</button>
-    <button onclick="captureImage()">Capture</button>
-
     <!-- Image Upload -->
-    <input type="file" id="imageUpload" accept="image/*" onchange="predictImage()">
-    <br>
+    <input type="file" id="imageUpload" accept="image/*">
+    <br><br>
     <img id="uploadedImage" style="max-width: 300px; display:none;">
+    <br><br>
+    <button id="submitBtn" onclick="predictImage()" disabled>Submit</button>
     
     <div id="label-container"></div>
 
     <script>
         const URL = ""; // Since model files are in root
-        let model, webcam, labelContainer, maxPredictions;
+        let model, labelContainer, maxPredictions, uploadedImage;
 
         async function loadModel() {
             const modelURL = URL + "model.json";
@@ -34,45 +31,25 @@
             labelContainer = document.getElementById("label-container");
         }
 
-        async function initWebcam() {
-            webcam = new tmImage.Webcam(200, 200, true);
-            await webcam.setup();
-            await webcam.play();
-            document.getElementById("webcam").style.display = "block";
-            document.getElementById("webcam").appendChild(webcam.canvas);
-            window.requestAnimationFrame(webcamLoop);
-        }
-
-        async function webcamLoop() {
-            webcam.update();
-            await predictWebcam();
-            window.requestAnimationFrame(webcamLoop);
-        }
-
-        async function predictWebcam() {
-            const prediction = await model.predict(webcam.canvas);
-            displayResults(prediction);
-        }
-
-        async function predictImage() {
-            const fileInput = document.getElementById("imageUpload");
-            const image = document.getElementById("uploadedImage");
-
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
+        document.getElementById("imageUpload").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
                 const reader = new FileReader();
-
-                reader.onload = async function(event) {
-                    image.src = event.target.result;
-                    image.style.display = "block";
-                    const imgElement = new Image();
-                    imgElement.src = event.target.result;
-                    imgElement.onload = async function() {
-                        const prediction = await model.predict(imgElement);
-                        displayResults(prediction);
-                    };
+                reader.onload = function(e) {
+                    uploadedImage = new Image();
+                    uploadedImage.src = e.target.result;
+                    document.getElementById("uploadedImage").src = e.target.result;
+                    document.getElementById("uploadedImage").style.display = "block";
+                    document.getElementById("submitBtn").disabled = false; // Enable submit button
                 };
                 reader.readAsDataURL(file);
+            }
+        });
+
+        async function predictImage() {
+            if (uploadedImage) {
+                const prediction = await model.predict(uploadedImage);
+                displayResults(prediction);
             }
         }
 
