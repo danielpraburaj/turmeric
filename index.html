@@ -3,74 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Turmeric Adulteration Detector</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #result { font-size: 20px; margin-top: 10px; }
-        img { max-width: 300px; margin-top: 10px; }
-    </style>
+    <title>Fruit Adulteration Detector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
 </head>
 <body>
-
-    <h1>Turmeric Adulteration Detector</h1>
-    <input type="file" id="imageUpload" accept="image/*">
-    <button id="submitBtn">Check</button>
-    <p id="result"></p>
-    <img id="preview" style="display:none;">
+    <h1>Fruit Adulteration Detector</h1>
+    <video id="webcam" autoplay></video>
+    <button onclick="init()">Start</button>
+    <div id="label-container"></div>
 
     <script>
-        let model;
-        const modelURL = "https://danielpraburaj.github.io/turmeric/";
+        const URL = ""; // No folder, since files are in the root directory
+        let model, webcam, labelContainer, maxPredictions;
 
-        // Load Model
-        const loadModel = async () => {
-            try {
-                console.log("Loading model...");
-                model = await tmImage.load(modelURL + "model.json", modelURL + "metadata.json");
-                console.log("Model loaded successfully!");
-            } catch (error) {
-                alert("Failed to load model. Check console for errors.");
-                console.error(error);
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            webcam = new tmImage.Webcam(200, 200, true);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            document.getElementById("webcam").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                labelContainer.appendChild(document.createElement("div"));
             }
-        };
+        }
 
-        // Image Preview
-        document.getElementById("imageUpload").addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                let img = document.getElementById("preview");
-                img.src = URL.createObjectURL(file);
-                img.style.display = "block";
+        async function loop() {
+            webcam.update();
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
+                labelContainer.childNodes[i].innerHTML = classPrediction;
             }
-        });
-
-        // Predict Function
-        document.getElementById("submitBtn").addEventListener("click", async () => {
-            if (!model) {
-                document.getElementById("result").innerText = "Model still loading, please wait...";
-                return;
-            }
-
-            const imgElement = document.getElementById("preview");
-            if (!imgElement.src) {
-                alert("Please select an image.");
-                return;
-            }
-
-            const prediction = await model.predict(imgElement);
-            console.log("Prediction:", prediction);
-
-            let highestScore = Math.max(...prediction.map(p => p.probability));
-            let detectedClass = prediction.find(p => p.probability === highestScore).className;
-
-            document.getElementById("result").innerText = 
-                `Prediction: ${detectedClass} (Confidence: ${(highestScore * 100).toFixed(2)}%)`;
-        });
-
-        loadModel();  // Load the model when the page loads
+        }
     </script>
-
 </body>
 </html>
