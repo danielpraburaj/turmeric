@@ -9,46 +9,84 @@
 </head>
 <body>
     <h1>Fruit Adulteration Detector</h1>
-    <video id="webcam" autoplay></video>
-    <button onclick="init()">Start</button>
+
+    <!-- Webcam -->
+    <video id="webcam" autoplay style="display:none;"></video>
+    <button onclick="initWebcam()">Use Webcam</button>
+    <button onclick="captureImage()">Capture</button>
+
+    <!-- Image Upload -->
+    <input type="file" id="imageUpload" accept="image/*" onchange="predictImage()">
+    <br>
+    <img id="uploadedImage" style="max-width: 300px; display:none;">
+    
     <div id="label-container"></div>
 
     <script>
-        const URL = ""; // No folder, since files are in the root directory
+        const URL = ""; // Since model files are in root
         let model, webcam, labelContainer, maxPredictions;
 
-        async function init() {
+        async function loadModel() {
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
-
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
+            labelContainer = document.getElementById("label-container");
+        }
 
+        async function initWebcam() {
             webcam = new tmImage.Webcam(200, 200, true);
             await webcam.setup();
             await webcam.play();
-            window.requestAnimationFrame(loop);
-
+            document.getElementById("webcam").style.display = "block";
             document.getElementById("webcam").appendChild(webcam.canvas);
-            labelContainer = document.getElementById("label-container");
-            for (let i = 0; i < maxPredictions; i++) {
-                labelContainer.appendChild(document.createElement("div"));
+            window.requestAnimationFrame(webcamLoop);
+        }
+
+        async function webcamLoop() {
+            webcam.update();
+            await predictWebcam();
+            window.requestAnimationFrame(webcamLoop);
+        }
+
+        async function predictWebcam() {
+            const prediction = await model.predict(webcam.canvas);
+            displayResults(prediction);
+        }
+
+        async function predictImage() {
+            const fileInput = document.getElementById("imageUpload");
+            const image = document.getElementById("uploadedImage");
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = async function(event) {
+                    image.src = event.target.result;
+                    image.style.display = "block";
+                    const imgElement = new Image();
+                    imgElement.src = event.target.result;
+                    imgElement.onload = async function() {
+                        const prediction = await model.predict(imgElement);
+                        displayResults(prediction);
+                    };
+                };
+                reader.readAsDataURL(file);
             }
         }
 
-        async function loop() {
-            webcam.update();
-            await predict();
-            window.requestAnimationFrame(loop);
-        }
-
-        async function predict() {
-            const prediction = await model.predict(webcam.canvas);
+        function displayResults(prediction) {
+            labelContainer.innerHTML = "";
             for (let i = 0; i < maxPredictions; i++) {
                 const classPrediction = prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
-                labelContainer.childNodes[i].innerHTML = classPrediction;
+                const resultElement = document.createElement("div");
+                resultElement.innerText = classPrediction;
+                labelContainer.appendChild(resultElement);
             }
         }
+
+        loadModel();
     </script>
 </body>
 </html>
