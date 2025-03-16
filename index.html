@@ -19,7 +19,7 @@
 
     <script>
         const API_URL = "https://detect.roboflow.com";
-        const API_KEY = "rf_C8tB8wSTyUaT2NKlheGiufCwqX93"; // Replace with your Roboflow API key
+        const API_KEY = "rf_C8tB8wSTyUaT2NKlheGiufCwqX93"; // Your Publishable API Key
         const MODEL_ID = "test-jeatf/1"; // Update with your actual model ID
 
         let uploadedImage;
@@ -47,18 +47,20 @@
             const formData = new FormData();
             formData.append("file", uploadedImage);
 
-            const url = `${API_URL}/${MODEL_ID}?api_key=${API_KEY}`;
+            const url = `${API_URL}/${MODEL_ID}?api_key=${API_KEY}&confidence=0.3`;
 
             try {
+                console.log("🔍 Sending image to Roboflow...");
                 const response = await fetch(url, {
                     method: "POST",
                     body: formData
                 });
 
                 const result = await response.json();
+                console.log("✅ API Response:", result); // Log response for debugging
                 displayResults(result);
             } catch (error) {
-                console.error("Error during prediction:", error);
+                console.error("❌ Error during prediction:", error);
                 alert("Error running prediction. Check the console for details.");
             }
         }
@@ -73,7 +75,7 @@
                     labelContainer.innerHTML += classPrediction;
                 });
             } else {
-                labelContainer.innerHTML += "<p>No detections found.</p>";
+                labelContainer.innerHTML += "<p>❌ No detections found. Try another image.</p>";
             }
         }
     </script>
