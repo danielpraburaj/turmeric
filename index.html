@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fruit Adulteration Detector</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
 </head>
 <body>
     <h1>Fruit Adulteration Detector</h1>
@@ -20,16 +18,11 @@
     <div id="label-container"></div>
 
     <script>
-        let model;
-        const URL = ""; // If model files are in root folder
-        let labelContainer, uploadedImage, imgElement;
+        const API_URL = "https://detect.roboflow.com";
+        const API_KEY = "rf_C8tB8wSTyUaT2NKlheGiufCwqX93"; // Replace with your Roboflow API key
+        const MODEL_ID = "test-jeatf/1"; // Update with your actual model ID
 
-        async function loadModel() {
-            console.log("Loading model...");
-            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
-            console.log("Model Loaded Successfully!");
-            labelContainer = document.getElementById("label-container");
-        }
+        let uploadedImage;
 
         document.getElementById("imageUpload").addEventListener("change", function(event) {
             const file = event.target.files[0];
@@ -39,50 +32,50 @@
                     document.getElementById("uploadedImage").src = e.target.result;
                     document.getElementById("uploadedImage").style.display = "block";
                     document.getElementById("submitBtn").disabled = false; // Enable submit button
-
-                    imgElement = new Image();
-                    imgElement.src = e.target.result;
-                    imgElement.onload = function() {
-                        console.log("Image Loaded for Prediction");
-                    };
+                    uploadedImage = file;
                 };
                 reader.readAsDataURL(file);
             }
         });
 
         async function predictImage() {
-            if (!model) {
-                alert("Model not loaded! Please check your files.");
-                return;
-            }
-            if (!imgElement) {
+            if (!uploadedImage) {
                 alert("No image uploaded! Please select an image first.");
                 return;
             }
 
-            console.log("Running prediction...");
+            const formData = new FormData();
+            formData.append("file", uploadedImage);
+
+            const url = `${API_URL}/${MODEL_ID}?api_key=${API_KEY}`;
+
             try {
-                const prediction = await model.predict(imgElement);
-                displayResults(prediction);
+                const response = await fetch(url, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                displayResults(result);
             } catch (error) {
                 console.error("Error during prediction:", error);
                 alert("Error running prediction. Check the console for details.");
             }
         }
 
-        function displayResults(prediction) {
+        function displayResults(result) {
+            const labelContainer = document.getElementById("label-container");
             labelContainer.innerHTML = "<h3>Results:</h3>";
-            for (let i = 0; i < prediction.length; i++) {
-                const classPrediction = `<p>${prediction[i].className}: ${Math.round(prediction[i].probability * 100)}%</p>`;
-                labelContainer.innerHTML += classPrediction;
-            }
-            console.log("Prediction complete!");
-        }
 
-        // Load model on page load
-        window.onload = () => {
-            loadModel();
-        };
+            if (result.predictions && result.predictions.length > 0) {
+                result.predictions.forEach(prediction => {
+                    const classPrediction = `<p>${prediction.class}: Confidence ${Math.round(prediction.confidence * 100)}%</p>`;
+                    labelContainer.innerHTML += classPrediction;
+                });
+            } else {
+                labelContainer.innerHTML += "<p>No detections found.</p>";
+            }
+        }
     </script>
 </body>
 </html>
