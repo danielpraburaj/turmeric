@@ -18,9 +18,10 @@
     <div id="label-container"></div>
 
     <script>
-        const API_URL = "https://detect.roboflow.com";
-        const API_KEY = "rf_C8tB8wSTyUaT2NKlheGiufCwqX93"; // Your Publishable API Key
-        const MODEL_ID = "test-jeatf/1"; // Update with your actual model ID
+        const API_URL = "https://classify.roboflow.com/";
+        const MODEL_ID = "test-jeatf";
+        const VERSION = "1";
+        const API_KEY = "baUupMb8dqcqk5qw0CUo"; // Ensure this is a Publishable API Key
 
         let uploadedImage;
 
@@ -47,7 +48,7 @@
             const formData = new FormData();
             formData.append("file", uploadedImage);
 
-            const url = `${API_URL}/${MODEL_ID}?api_key=${API_KEY}&confidence=0.3`;
+            const url = `${API_URL}${MODEL_ID}/${VERSION}?api_key=${API_KEY}&confidence=0.1`;
 
             try {
                 console.log("🔍 Sending image to Roboflow...");
@@ -57,7 +58,7 @@
                 });
 
                 const result = await response.json();
-                console.log("✅ API Response:", result); // Log response for debugging
+                console.log("✅ Full API Response:", JSON.stringify(result, null, 2)); // Log response
                 displayResults(result);
             } catch (error) {
                 console.error("❌ Error during prediction:", error);
