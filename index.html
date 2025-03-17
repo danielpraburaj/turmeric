@@ -14,7 +14,7 @@
     <img id="uploadedImage" style="max-width: 300px; display:none;">
     <br><br>
     <button id="submitBtn" onclick="predictImage()" disabled>Submit</button>
-    
+
     <div id="label-container"></div>
 
     <script>
@@ -23,7 +23,7 @@
         const VERSION = "1";
         const API_KEY = "rf_C8tB8wSTyUaT2NKlheGiufCwqX93"; // Ensure this is a Publishable API Key
 
-        let uploadedImage;
+        let base64Image = "";
 
         document.getElementById("imageUpload").addEventListener("change", function(event) {
             const file = event.target.files[0];
@@ -33,28 +33,32 @@
                     document.getElementById("uploadedImage").src = e.target.result;
                     document.getElementById("uploadedImage").style.display = "block";
                     document.getElementById("submitBtn").disabled = false; // Enable submit button
-                    uploadedImage = file;
+                    base64Image = e.target.result.split(',')[1]; // Extract Base64 data
                 };
                 reader.readAsDataURL(file);
             }
         });
 
         async function predictImage() {
-            if (!uploadedImage) {
+            if (!base64Image) {
                 alert("No image uploaded! Please select an image first.");
                 return;
             }
 
-            const formData = new FormData();
-            formData.append("file", uploadedImage);
-
             const url = `${API_URL}${MODEL_ID}/${VERSION}?api_key=${API_KEY}&confidence=0.1`;
+
+            const payload = {
+                image: base64Image
+            };
 
             try {
                 console.log("🔍 Sending image to Roboflow...");
                 const response = await fetch(url, {
                     method: "POST",
-                    body: formData
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
