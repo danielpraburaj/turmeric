@@ -12,13 +12,19 @@ API_KEY = "baUupMb8dqcqk5qw0CUo"  # Replace with your Publishable API Key
 # Streamlit App Title
 st.title("🍎 Fruit Adulteration Detector")
 
-# File uploader
-uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "png", "jpeg"])
+# Option to either upload an image or take a picture
+st.write("**Choose an option:**")
+upload_option = st.radio("Select input method:", ("Upload Image", "Take a Picture"))
+
+if upload_option == "Upload Image":
+    uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "png", "jpeg"])
+else:
+    uploaded_file = st.camera_input("Take a picture")
 
 if uploaded_file:
-    # Display uploaded image
+    # Display the selected image
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="Selected Image", use_column_width=True)
 
     # Convert image to bytes
     image_bytes = io.BytesIO()
