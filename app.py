@@ -32,7 +32,7 @@ if uploaded_file:
 
     # Run detection when the user clicks the button
     if st.button("Detect"):
-        st.write("🔍 Sending image to Roboflow for detection...")
+        st.write("🔍 Detecting toxins...")
 
         # API Request
         url = f"{API_URL}{MODEL_ID}/{VERSION}?api_key={API_KEY}&confidence=0.1"
