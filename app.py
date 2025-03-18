@@ -9,6 +9,16 @@ MODEL_ID = "test-jeatf"
 VERSION = "1"
 API_KEY = "baUupMb8dqcqk5qw0CUo"  # Replace with your Publishable API Key
 
+# Hide Streamlit Branding (Header, Footer, and Menu)
+hide_st_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 # Streamlit App Title
 st.title("🍎 Fruit Adulteration Detector")
 
@@ -16,17 +26,23 @@ st.title("🍎 Fruit Adulteration Detector")
 st.write("**Choose an option:**")
 upload_option = st.radio("Select input method:", ("Upload Image", "Take a Picture"))
 
+# Image Upload or Camera Input
 if upload_option == "Upload Image":
     uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "png", "jpeg"])
 else:
     uploaded_file = st.camera_input("Take a picture")
 
 if uploaded_file:
-    # Display the selected image
+    # Open the image
     image = Image.open(uploaded_file)
-    st.image(image, caption="Selected Image", use_column_width=True)
 
-    # Convert image to bytes
+    # Resize the image for display (e.g., 200x200 pixels)
+    small_image = image.resize((200, 200))
+
+    # Display the resized image
+    st.image(small_image, caption="Selected Image", use_column_width=False)
+
+    # Convert image to bytes for API request
     image_bytes = io.BytesIO()
     image.save(image_bytes, format="JPEG")
 
