@@ -7,7 +7,7 @@ import io
 API_URL = "https://classify.roboflow.com/"
 MODEL_ID = "test-jeatf"
 VERSION = "1"
-API_KEY = "baUupMb8dqcqk5qw0CUo"  # Replace with your Publishable API Key
+API_KEY = "rf_C8tB8wSTyUaT2NKlheGiufCwqX93"  # Replace with your Publishable API Key
 
 # Hide Streamlit Branding (Header, Footer, and Menu)
 hide_st_style = """
