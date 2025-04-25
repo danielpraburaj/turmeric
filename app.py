@@ -20,7 +20,7 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # Streamlit App Title
-st.title("🍎 Fruit Adulteration Detector")
+st.title("Turmeric Adulteration - Testing")
 
 # Option to either upload an image or take a picture
 st.write("**Choose an option:**")
