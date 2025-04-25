@@ -3,3 +3,5 @@ requests
 pillow
 tensorflow-cpu
 inference-sdk
+opencv-python
+
