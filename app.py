@@ -51,7 +51,7 @@ if uploaded_file:
         st.write("🔍 Detecting toxins...")
 
         # API Request
-        url = f"{API_URL}{MODEL_ID}/{VERSION}?api_key={API_KEY}&confidence=0.1"
+        url = f"{API_URL}{MODEL_ID}/{VERSION}?api_key={API_KEY}&confidence=0.6"
         response = requests.post(url, files={"file": image_bytes.getvalue()})
 
         # Check response
