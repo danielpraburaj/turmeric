@@ -5,9 +5,9 @@ import io
 
 # Roboflow API Details
 API_URL = "https://classify.roboflow.com/"
-MODEL_ID = "t-2-a32a3/6"
-VERSION = "1"
-API_KEY = "baUupMb8dqcqk5qw0CUo"  # Replace with your Publishable API Key
+MODEL_ID = "t-2-a32a3"
+VERSION = "6"
+API_KEY = "CpyMwjIoiSYVQP2aII6h"  # Replace with your Publishable API Key
 
 # Hide Streamlit Branding (Header, Footer, and Menu)
 hide_st_style = """
