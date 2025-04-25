@@ -1,18 +1,15 @@
 import streamlit as st
+import requests
 from PIL import Image
 import io
-from inference_sdk import InferenceHTTPClient
 
-# Roboflow Inference API Client
-client = InferenceHTTPClient(
-    api_url="https://detect.roboflow.com",
-    api_key="CpyMwjIoiSYVQP2aII6h"  
-)
+# Roboflow API Details
+API_URL = "https://classify.roboflow.com/"
+MODEL_ID = "t-2-a32a3/6"
+VERSION = "1"
+API_KEY = "baUupMb8dqcqk5qw0CUo"  # Replace with your Publishable API Key
 
-WORKSPACE_NAME = "turmeric-rlloj"
-WORKFLOW_ID = "detect-and-classify"
-
-# Hide Streamlit Branding
+# Hide Streamlit Branding (Header, Footer, and Menu)
 hide_st_style = """
     <style>
         #MainMenu {visibility: hidden;}
@@ -22,50 +19,49 @@ hide_st_style = """
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# App Title
-st.title("Turmeric - Testing")
+# Streamlit App Title
+st.title("Turmeric Adulteration - Testing")
 
-# Upload or Capture Option
+# Option to either upload an image or take a picture
 st.write("**Choose an option:**")
 upload_option = st.radio("Select input method:", ("Upload Image", "Take a Picture"))
 
-# Image Input
+# Image Upload or Camera Input
 if upload_option == "Upload Image":
     uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "png", "jpeg"])
 else:
     uploaded_file = st.camera_input("Take a picture")
 
 if uploaded_file:
+    # Open the image
     image = Image.open(uploaded_file)
+
+    # Resize the image for display (e.g., 200x200 pixels)
     small_image = image.resize((200, 200))
+
+    # Display the resized image
     st.image(small_image, caption="Selected Image", use_column_width=False)
 
-    # Save image to BytesIO
+    # Convert image to bytes for API request
     image_bytes = io.BytesIO()
     image.save(image_bytes, format="JPEG")
-    image_bytes.seek(0)
 
+    # Run detection when the user clicks the button
     if st.button("Detect"):
-        st.write("🔍 Running detection and classification...")
+        st.write("🔍 Detecting toxins...")
 
-        # Run the workflow
-        result = client.run_workflow(
-            workspace_name=WORKSPACE_NAME,
-            workflow_id=WORKFLOW_ID,
-            images={"image": image_bytes},
-            use_cache=True
-        )
+        # API Request
+        url = f"{API_URL}{MODEL_ID}/{VERSION}?api_key={API_KEY}&confidence=0.1"
+        response = requests.post(url, files={"file": image_bytes.getvalue()})
 
-        # Display results
-        if result and "results" in result:
-            st.success("✅ Detection Completed")
-            for res in result["results"]:
-                if "predictions" in res:
-                    for pred in res["predictions"]:
-                        label = pred.get("class", "Unknown")
-                        conf = round(pred.get("confidence", 0) * 100, 2)
-                        st.write(f"🔹 **{label}**: {conf}% confidence")
-                else:
-                    st.write("❌ No objects detected.")
+        # Check response
+        if response.status_code == 200:
+            result = response.json()
+            st.write("✅ **Detection Results:**")
+            if result.get("predictions"):
+                for pred in result["predictions"]:
+                    st.write(f"🔹 **{pred['class']}**: {round(pred['confidence'] * 100, 2)}% confidence")
+            else:
+                st.write("❌ No detections found. Try another image.")
         else:
-            st.error("❌ Error processing the image or no results returned.")
+            st.error(f"❌ Error {response.status_code}: {response.text}")
