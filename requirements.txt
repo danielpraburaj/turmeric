@@ -2,3 +2,4 @@ streamlit
 requests
 pillow
 tensorflow-cpu
+inference-sdk
