@@ -7,7 +7,7 @@ import io
 API_URL = "https://classify.roboflow.com/"
 MODEL_ID = "t-2-a32a3"
 VERSION = "6"
-API_KEY = "CpyMwjIoiSYVQP2aII6h" 
+API_KEY = "CpyMwjIoiSYVQP2aII6h"  # Replace with your Publishable API Key
 
 # Hide Streamlit Branding (Header, Footer, and Menu)
 hide_st_style = """
@@ -61,9 +61,9 @@ if uploaded_file:
             if top_pred:
                 label = top_pred['class'].lower()
 
-                if "lead" in label:
+                if label == "lead":
                     st.error("❌ Contaminated with lead.")
-                else:
+                elif label == "non-lead":
                     st.success("✅ Appears clean.")
         else:
             st.error(f"❌ Error {response.status_code}: {response.text}")
