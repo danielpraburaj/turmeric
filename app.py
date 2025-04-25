@@ -6,7 +6,7 @@ from inference_sdk import InferenceHTTPClient
 # Roboflow Inference API Client
 client = InferenceHTTPClient(
     api_url="https://detect.roboflow.com",
-    api_key="CpyMwjIoiSYVQP2aII6h"  # Use your actual API key
+    api_key="CpyMwjIoiSYVQP2aII6h"  
 )
 
 WORKSPACE_NAME = "turmeric-rlloj"
