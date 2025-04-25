@@ -20,7 +20,7 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # Streamlit App Title
-st.title("Turmeric Adulteration - Testing")
+st.title("🌿 Turmeric Adulteration - Testing")
 
 # Option to either upload an image or take a picture
 st.write("**Choose an option:**")
@@ -40,7 +40,7 @@ if uploaded_file:
     small_image = image.resize((200, 200))
 
     # Display the resized image
-    st.image(small_image, caption="Selected Image", use_column_width=False)
+    st.image(small_image, caption="Selected Image", use_container_width=False)
 
     # Convert image to bytes for API request
     image_bytes = io.BytesIO()
@@ -57,11 +57,13 @@ if uploaded_file:
         # Check response
         if response.status_code == 200:
             result = response.json()
+            preds = result.get("predictions", [])
+
             st.write("✅ **Detection Results:**")
-            if result.get("predictions"):
-                for pred in result["predictions"]:
+            if preds:
+                for pred in preds:
                     st.write(f"🔹 **{pred['class']}**: {round(pred['confidence'] * 100, 2)}% confidence")
             else:
-                st.write("❌ No detections found. Try another image.")
+                st.success("✅ This sample appears clean! No signs of adulteration detected.")
         else:
             st.error(f"❌ Error {response.status_code}: {response.text}")
